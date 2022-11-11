@@ -1,25 +1,40 @@
+import { useEffect } from 'react';
 import { Route, useParams, Link, useRouteMatch } from 'react-router-dom';
 
-import Comments from '../components/comments/Comments.js';
+import Comments from '../components/comments/Comments';
 import HighlightedQuote from '../components/quotes/HighlightedQuote';
+import NoQuotesFound from '../components/quotes/NoQuotesFound.js';
+import LoadingSpinner from '../components/UI/LoadingSpinner.js';
 
-const DUMMY_QUOTES = [
-    { id: 'q1', author: 'Max', text: 'Learning React is fun!'},
-    { id: 'q2', author: 'Steven', text: 'Milestone to master react!'}
-];
+import useHttp from '../hooks/use-http.js';
+import { getSingleQuote } from '../lib/api';
 
 const QuoteDetail = () => {
+    const { sendRequest, status, data: quote, error } = useHttp(getSingleQuote, true);
+
     const params = useParams();
     const match = useRouteMatch();
 
-    console.log(match);
+    const {quoteId} = params;
 
-    const quote = DUMMY_QUOTES.find(quote => {
-        return quote.id === params.quoteId
-    });
+    useEffect(() => {
+        if (status !== 'completed') {
+            sendRequest(quoteId);
+        }
+    }, [sendRequest, status, quoteId]);
 
-    if (!quote) {
-        return <p>No Quote Found.</p>;
+    if (status === 'pending') {
+        return <div className='centered'>
+            <LoadingSpinner />
+        </div>;
+    }
+
+    if (error) {
+        return <p className='centered focus'>{ error }</p>;
+    }
+
+    if (status === 'completed' && !quote.text) {
+        return <p>No quote found!</p>;
     }
 
     return (
