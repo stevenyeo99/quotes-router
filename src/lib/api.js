@@ -9,7 +9,7 @@ export async function getAllQuotes() {
     }
 
     const transformedQuotes = [];
-
+    console.log('Steven: ' + data);
     for (const key in data) {
         const quoteObj = {
             id: key,
